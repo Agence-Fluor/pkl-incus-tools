@@ -6,6 +6,8 @@ Bibliothèque de description et de déploiement Incus **écrite en Pkl**. Les
 types Incus viennent du paquet publié `pkl-incus`. `pkl-shell` est le lecteur
 externe nécessaire à Pkl pour lancer le client Incus ; il n'y a pas de moteur
 Python ni de CLI de réconciliation distinct.
+Pour la toolchain du dépôt, `./flake.pkl develop` lit le schéma `pkl-nix`
+épinglé dans `flake.pkl` et utilise le wrapper `pkl-nix-tools` du `PATH`.
 Cette passerelle suit le modèle des [lecteurs externes de
 Pkl](https://pkl-lang.org/main/current/pkl-cli/index.html#implementing-cli-tools) :
 une commande Pkl seule ne peut pas démarrer un programme système.

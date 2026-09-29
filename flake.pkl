@@ -1,0 +1,36 @@
+#!/usr/bin/env -S pkl-nix-tools
+amends
+  "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-nix/pkl-nix@0.1.0::sha256:0bb439a7c49342a022b59203d60c011e41ba1bc01d982b6afa42fc453790d209#/Flake.pkl"
+
+import
+  "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-nix/pkl-nix@0.1.0::sha256:0bb439a7c49342a022b59203d60c011e41ba1bc01d982b6afa42fc453790d209#/Nix.pkl"
+  as Nix
+
+description = "Toolchain for the pkl-incus-tools package"
+
+inputs {
+  ["nixpkgs"] = new Nix.Input { url = "github:NixOS/nixpkgs/nixos-unstable" }
+}
+
+local systems = List("x86_64-linux", "aarch64-linux")
+
+devShells {
+  for (system in systems) {
+    [system] {
+      ["default"] = new Nix.Raw {
+        code =
+          """
+          let
+            pkgs = inputs.nixpkgs.legacyPackages.\(system);
+          in
+          pkgs.mkShell {
+            packages = [ pkgs.pkl pkgs.incus.client pkgs.unzip ];
+            shellHook = ''
+              export PKL="${pkgs.pkl}/bin/pkl"
+            '';
+          }
+          """
+      }
+    }
+  }
+}
