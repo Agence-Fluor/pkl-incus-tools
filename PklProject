@@ -1,0 +1,23 @@
+amends "pkl:Project"
+
+package {
+  name = "pkl-incus-tools"
+  baseUri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus-tools/pkl-incus-tools"
+  version = "0.1.0"
+  packageZipUrl =
+    "https://github.com/Agence-Fluor/pkl-incus-tools/releases/download/pkl-incus-tools@\(version)/pkl-incus-tools@\(version).zip"
+  sourceCode = "https://github.com/Agence-Fluor/pkl-incus-tools"
+}
+
+dependencies {
+  ["incus"] {
+    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus/incus-pkl@0.1.0"
+  }
+  ["shell"] {
+    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-shell/pkl-shell@0.1.0"
+  }
+}
+
+evaluatorSettings {
+  moduleCacheDir = ".pkl-cache"
+}

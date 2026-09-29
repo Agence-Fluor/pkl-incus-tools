@@ -1,0 +1,117 @@
+module incus.tools.Resource
+
+import "@incus/Incus.pkl"
+
+local const renderer = new YamlRenderer {}
+
+open class Resource {
+  kind: String
+  name: String(!isEmpty)
+  /// Existing dependencies can be declared external; they are never changed.
+  managed: Boolean = true
+  /// Suppress persisted YAML for payloads containing application secrets.
+  sensitive: Boolean = false
+  target: String? = null
+  parent: String? = null
+  pool: String? = null
+  volumeType: "custom" = "custom"
+  dependsOn: Listing<String> = new {}
+  payload: Typed
+  /// Initial image reference is creation-only; changing it requires replacement.
+  image: String? = null
+  running: Boolean = true
+  /// Per-member settings for two-phase pool/network creation.
+  members: Mapping<String, Incus.ConfigMap> = new {}
+  yaml: String = renderer.renderDocument(payload)
+}
+
+class Network extends Resource {
+  kind = "network"
+
+  payload: Incus.NetworksPost
+}
+class Profile extends Resource {
+  kind = "profile"
+
+  payload: Incus.ProfilesPost
+}
+class Instance extends Resource {
+  kind = "instance"
+
+  payload: Incus.InstancesPost
+}
+class ACL extends Resource {
+  kind = "acl"
+
+  payload: Incus.NetworkACLsPost
+}
+class AddressSet extends Resource {
+  kind = "address-set"
+
+  payload: Incus.NetworkAddressSetsPost
+}
+class Forward extends Resource {
+  kind = "forward"
+
+  payload: Incus.NetworkForwardsPost
+}
+class LoadBalancer extends Resource {
+  kind = "load-balancer"
+
+  payload: Incus.NetworkLoadBalancersPost
+}
+class Peer extends Resource {
+  kind = "peer"
+
+  payload: Incus.NetworkPeersPost
+}
+class Integration extends Resource {
+  kind = "integration"
+
+  payload: Incus.NetworkIntegrationsPost
+}
+class Zone extends Resource {
+  kind = "zone"
+
+  payload: Incus.NetworkZonesPost
+}
+class Record extends Resource {
+  kind = "record"
+
+  payload: Incus.NetworkZoneRecordsPost
+}
+class Pool extends Resource {
+  kind = "pool"
+
+  payload: Incus.StoragePoolsPost
+}
+class Volume extends Resource {
+  kind = "volume"
+
+  payload: Incus.StorageVolumesPost
+}
+class Bucket extends Resource {
+  kind = "bucket"
+
+  payload: Incus.StorageBucketsPost
+}
+class BucketKey extends Resource {
+  kind = "bucket-key"
+
+  payload: Incus.StorageBucketKeysPost
+}
+class ClusterGroup extends Resource {
+  kind = "cluster-group"
+
+  payload: Incus.ClusterGroupsPost
+}
+class ImageAlias extends Resource {
+  kind = "image-alias"
+
+  payload: Incus.ImageAliasesPost
+}
+class InstanceMetadata extends Resource {
+  kind = "instance-metadata"
+
+  payload: Incus.ImageMetadata
+}

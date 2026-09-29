@@ -1,0 +1,3 @@
+extends "@tools/lib/pkl/Command.pkl"
+
+environment = import("smoke.pkl")

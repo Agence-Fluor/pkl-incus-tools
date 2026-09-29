@@ -1,0 +1,20 @@
+open module incus.tools.Environment
+
+import "@incus/Incus.pkl"
+
+import "Cluster.pkl"
+import "Product.pkl"
+import "Tenant.pkl"
+
+fixed kind: "environment" = "environment"
+remote: String(!isEmpty)
+project: String(!isEmpty, this != "default")
+tenant: Tenant
+/// Optional infrastructure reference; cluster bootstrap is not yet executable.
+cluster: Cluster? = null
+products: Mapping<String, Product> = new {}
+projectConfig: Incus.ProjectPut = new {
+  description = "\(tenant.name) / \(project)"
+  config = tenant.policy.toConfigMap()
+}
+projectYaml: String = (new YamlRenderer {}).renderDocument(projectConfig)

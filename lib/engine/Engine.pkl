@@ -1,0 +1,250 @@
+module incus.tools.Engine
+
+import "pkl:json"
+
+import "@shell/shell.pkl" as shell
+
+import "../pkl/Environment.pkl"
+import "../pkl/Resource.pkl"
+
+// The decisions and ordering live here. pkl-shell only runs one Incus CLI call
+// at a time and returns its output; there is no second reconciliation program.
+local const marker = "user.i2s.owner"
+local const renderer = new JsonRenderer {}
+local const safeName = Regex("[A-Za-z0-9][A-Za-z0-9_.-]*")
+
+class Step {
+  kind: String
+  name: String
+  collection: String
+  project: String?
+  body: String
+  update: String
+  owner: String
+}
+
+function checkName(value: String): String =
+  if (safeName.matchEntire(value) == null) throw("Unsafe Incus name: \(value)") else value
+
+function quote(value: String): String = "'\(value.replaceAll("'", "'\"'\"'"))'"
+
+function ownerId(environment: Environment): String =
+  "iac:\(checkName(environment.remote)):\(checkName(environment.project))"
+
+function withMarker(value: Typed, resourceName: String, ownerId: String): Dynamic =
+  let (fields = value.toMap())
+  let (settings = (fields.getOrNull("config") ?? new Mapping {}) as Mapping<String, String>)
+    new Dynamic {
+      ...fields.remove("config").remove("name")
+      name = resourceName
+      config = new Mapping { ...settings; [marker] = ownerId }
+    }
+
+function updateBody(value: Dynamic, kind: String): String =
+  let (fields = value.toMap().remove("name"))
+    renderer.renderDocument(new Dynamic {
+      ...if (kind == "instance")
+        fields
+          .remove("source")
+          .remove("start")
+          .remove("type")
+          .remove("ephemeral")
+          .remove("instance_type")
+      else if (kind == "volume")
+        fields.remove("source").remove("type").remove("content_type")
+      else
+        fields.remove("type")
+    })
+
+function projectStep(environment: Environment): Step =
+  let (projectName = checkName(environment.project))
+  let (payload = withMarker(environment.projectConfig, projectName, ownerId(environment)))
+    new Step {
+      kind = "project"
+      name = projectName
+      collection = "/1.0/projects"
+      project = null
+      body = renderer.renderDocument(payload)
+      update = updateBody(payload, "project")
+      owner = ownerId(environment)
+    }
+
+function resourceStep(environment: Environment, resource: Resource.Resource): Step =
+  let (resourceKind = resource.kind)
+  let (
+    resourceCollection =
+      if (resourceKind == "network")
+        "/1.0/networks"
+      else if (resourceKind == "profile")
+        "/1.0/profiles"
+      else if (resourceKind == "instance")
+        "/1.0/instances"
+      else if (resourceKind == "volume" && resource.pool != null)
+        "/1.0/storage-pools/\(checkName(resource.pool))/volumes/custom"
+      else
+        throw(
+          "Unsupported resource \(resourceKind) \(resource.name); supported: network, profile, instance, volume with pool"
+        )
+  )
+  let (marked = withMarker(resource.payload, checkName(resource.name), ownerId(environment)))
+  let (
+    payload =
+      if (resourceKind == "instance")
+        new Dynamic { ...marked.toMap().remove("start"); start = resource.running }
+      else if (resourceKind == "volume")
+        new Dynamic { ...marked.toMap().remove("type"); type = resource.volumeType }
+      else
+        marked
+  )
+    if (resource is Resource.Network && resource.payload.type != "ovn")
+      throw("Project networks must use OVN: \(resource.name)")
+    else if (
+      resource.parent != null
+        || resource.target != null
+        || !resource.members.isEmpty
+        || resource.image != null
+        || resource.sensitive
+    )
+      throw(
+        "Resource \(resource.name) uses parent, target, members, image or sensitive; this Pkl engine does not implement those fields yet"
+      )
+    else if (resource.pool != null && resourceKind != "volume")
+      throw("Only volumes may set pool: \(resource.name)")
+    else
+      new Step {
+        kind = resourceKind
+        name = resource.name
+        collection = resourceCollection
+        project = environment.project
+        body = renderer.renderDocument(payload)
+        update = updateBody(payload, resourceKind)
+        owner = ownerId(environment)
+      }
+
+function checkedResources(environment: Environment): List<Resource.Resource> =
+  let (
+    declared = environment.products.toMap().values.flatMap((product) -> product.resources.toList())
+  )
+  let (resources = declared.filter((it) -> it.managed))
+  let (
+    externalNames =
+      declared
+        .filter((it) -> !it.managed)
+        .map((it) -> it.name)
+  )
+  let (names = declared.map((it) -> it.name))
+    if (!names.isDistinct)
+      throw("Two managed resources have the same name")
+    else if (
+      resources
+        .fold(List(), (seen, resource) ->
+          if (
+            !resource.dependsOn
+              .toList()
+              .every((dependency) -> seen.contains(dependency) || externalNames.contains(dependency))
+          )
+            throw(
+              "Dependencies of \(resource.name) must refer to earlier managed resources or declared external resources"
+            )
+          else
+            seen + List(resource.name)
+        )
+        .length != resources.length
+    )
+      throw("Invalid dependency order")
+    else
+      resources
+
+function steps(environment: Environment, scope: String): List<Step> =
+  if (scope == "resources")
+    checkedResources(environment).map((it) -> resourceStep(environment, it))
+  else if (scope == "project")
+    List(projectStep(environment))
+  else if (scope == "full")
+    List(projectStep(environment))
+      + checkedResources(environment).map((it) -> resourceStep(environment, it))
+  else
+    throw("Unknown scope: \(scope)")
+
+function orderedSteps(environment: Environment, action: String, scope: String): List<Step> =
+  let (result = steps(environment, scope))
+    if (action == "apply")
+      result
+    else if (action == "destroy")
+      result.reverse()
+    else
+      throw("Unknown action: \(action)")
+
+function plan(environment: Environment, action: String, scope: String): String =
+  let (all = orderedSteps(environment, action, scope))
+  let (
+    preflight = all.every((it) -> !it.collection.isEmpty && !it.body.isEmpty && !it.update.isEmpty)
+  )
+    if (scope == "full" && environment.cluster != null)
+      throw(
+        "Cluster bootstrap and joins are not implemented by this Pkl engine; use an existing remote"
+      )
+    else if (!preflight)
+      throw("Empty Incus operation")
+    else
+      "\(action) on \(checkName(environment.remote)):\(checkName(environment.project))\n"
+        + all.map((it) -> "\(action) \(it.kind) \(it.name) \(it.collection)").join("\n")
+        + "\n"
+
+function listPath(step: Step): String =
+  "\(step.collection)?\(if (step.project == null) "" else "project=\(checkName(step.project))&")recursion=1"
+
+function itemPath(step: Step): String =
+  "\(step.collection)/\(checkName(step.name))\(if (step.project == null) "" else "?project=\(checkName(step.project))")"
+
+function collectionPath(step: Step): String =
+  "\(step.collection)\(if (step.project == null) "" else "?project=\(checkName(step.project))")"
+
+function existing(step: Step, remote: String): Dynamic? =
+  let (response = shell.run("incus query \(quote("\(checkName(remote)):\(listPath(step))"))"))
+  let (items = (new json.Parser {}).parse(response) as Listing<Dynamic>)
+    items.toList().filter((it) -> it.name == step.name).firstOrNull
+
+function assertOwned(step: Step, value: Dynamic): Boolean =
+  let (config = value.getPropertyOrNull("config"))
+  let (actual = if (config == null) null else (config as Dynamic).getPropertyOrNull(marker))
+    if (actual != step.owner)
+      throw("Refusing foreign \(step.kind) \(step.name): expected \(marker)=\(step.owner)")
+    else
+      true
+
+function executeStep(step: Step, remote: String, action: String): String =
+  let (found = existing(step, remote))
+    if (action == "apply" && found == null)
+      shell.run(
+        "incus query --wait -X POST -d \(quote(step.body)) \(quote("\(remote):\(collectionPath(step))"))",
+      )
+    else if (action == "apply" && assertOwned(step, found))
+      shell.run(
+        "incus query --wait -X PUT -d \(quote(step.update)) \(quote("\(remote):\(itemPath(step))"))",
+      )
+    else if (action == "destroy" && found == null)
+      "already absent: \(step.kind) \(step.name)\n"
+    else if (action == "destroy" && assertOwned(step, found))
+      shell.run("incus query --wait -X DELETE \(quote("\(remote):\(itemPath(step))"))")
+    else
+      throw("Unexpected action: \(action)")
+
+function execute(environment: Environment, action: String, scope: String): String =
+  let (all = orderedSteps(environment, action, scope))
+  // Force every step's validation and API payload before any mutation.
+  let (
+    preflight = all.every((it) -> !it.collection.isEmpty && !it.body.isEmpty && !it.update.isEmpty)
+  )
+    if (scope == "full" && environment.cluster != null)
+      throw(
+        "Cluster bootstrap and joins are not implemented by this Pkl engine; use an existing remote"
+      )
+    else if (!preflight)
+      throw("Empty Incus operation")
+    else
+      all.fold("", (result, step) ->
+        result
+          + "\(action) \(step.kind) \(step.name)\n"
+          + executeStep(step, environment.remote, action)
+      )

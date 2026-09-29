@@ -1,0 +1,3 @@
+amends "@tools/lib/pkl/Tenant.pkl"
+
+name = "fixture's"

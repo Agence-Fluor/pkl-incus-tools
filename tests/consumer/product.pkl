@@ -1,0 +1,66 @@
+amends "@tools/lib/pkl/Product.pkl"
+
+import "@tools/lib/pkl/Resource.pkl"
+
+resources {
+  new Resource.Network {
+    name = "fixture-net"
+    payload = new {
+      type = "ovn"
+      config {
+        ["network"] = "none"
+        ["ipv4.address"] = "10.230.0.1/24"
+      }
+    }
+  }
+  new Resource.Profile {
+    name = "fixture-profile"
+    dependsOn { "fixture-net" }
+    payload = new {
+      devices {
+        ["eth0"] {
+          ["type"] = "nic"
+          ["network"] = "fixture-net"
+        }
+        ["root"] {
+          ["type"] = "disk"
+          ["path"] = "/"
+          ["pool"] = "default"
+        }
+      }
+    }
+  }
+  new Resource.Volume {
+    name = "fixture-data"
+    pool = "default"
+    payload = new {
+      config { ["size"] = "1GiB" }
+    }
+  }
+  new Resource.Instance {
+    name = "fixture-vm"
+    dependsOn { "fixture-profile"; "fixture-data" }
+    payload = new {
+      type = "virtual-machine"
+      profiles { "fixture-profile" }
+      source = new {
+        type = "image"
+        alias = "debian/13"
+        protocol = "simplestreams"
+        server = "https://images.linuxcontainers.org"
+      }
+      devices {
+        ["data"] {
+          ["type"] = "disk"
+          ["source"] = "fixture-data"
+          ["pool"] = "default"
+          ["path"] = "/var/lib/data"
+        }
+      }
+      config {
+        ["limits.cpu"] = "2"
+        ["limits.memory"] = "2GiB"
+      }
+    }
+  }
+}

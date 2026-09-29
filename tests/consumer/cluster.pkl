@@ -1,0 +1,6 @@
+amends "@tools/lib/pkl/Cluster.pkl"
+
+name = "fixture"
+remote = "local"
+clustered = false
+members { import("member.pkl") }

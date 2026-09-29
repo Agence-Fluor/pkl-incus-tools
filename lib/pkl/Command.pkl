@@ -1,0 +1,29 @@
+/// Run an Incus environment described by a separate, side-effect-free Pkl module.
+open module incus.tools.Command
+
+extends "pkl:Command"
+
+import "../engine/Engine.pkl"
+import "Environment.pkl"
+
+/// Set this in the consumer's main.pkl with `environment = import("envs/local.pkl")`.
+environment: Environment
+
+options: Options
+
+class Options {
+  action: "apply" | "destroy" = "apply"
+  scope: "resources" | "project" | "full" = "resources"
+
+  /// Execute Incus calls. Without this flag, print a server-independent plan.
+  @BooleanFlag
+  execute: Boolean = false
+}
+
+output {
+  text =
+    if (module.options.execute)
+      Engine.execute(module.environment, module.options.action, module.options.scope)
+    else
+      Engine.plan(module.environment, module.options.action, module.options.scope)
+}

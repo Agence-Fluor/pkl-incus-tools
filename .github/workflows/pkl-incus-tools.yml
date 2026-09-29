@@ -1,0 +1,71 @@
+name: Pkl Incus tools package
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["pkl-incus-tools@*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: cachix/install-nix-action@v31
+      - name: Check dependency locks
+        run: |
+          nix --extra-experimental-features 'nix-command flakes' develop . \
+            --command sh -ec 'pkl project resolve; (cd tests/consumer && pkl project resolve); git diff --exit-code -- PklProject.deps.json tests/consumer/PklProject.deps.json'
+      - name: Test Pkl command and packaged consumer import
+        run: >-
+          nix --extra-experimental-features 'nix-command flakes' develop .
+          --command sh scripts/test-package.sh
+      - name: Build release package
+        run: >-
+          nix --extra-experimental-features 'nix-command flakes' develop .
+          --command sh scripts/package-pkl.sh dist/package
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pkl-incus-tools-package
+          path: dist/package/*
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/pkl-incus-tools@')
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: cachix/install-nix-action@v31
+      - uses: actions/download-artifact@v8
+        with:
+          name: pkl-incus-tools-package
+          path: dist/package
+      - name: Verify tag matches package version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(nix --extra-experimental-features 'nix-command flakes' develop . --command pkl eval --no-project -x 'package.version' PklProject)
+          test "$TAG" = "pkl-incus-tools@$version"
+      - name: Publish Pkl package assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=${TAG#pkl-incus-tools@}
+          gh release create "$TAG" \
+            "dist/package/pkl-incus-tools@$version" \
+            "dist/package/pkl-incus-tools@$version.sha256" \
+            "dist/package/pkl-incus-tools@$version.zip" \
+            "dist/package/pkl-incus-tools@$version.zip.sha256" \
+            --verify-tag --generate-notes

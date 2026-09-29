@@ -1,0 +1,13 @@
+open module incus.tools.Member
+
+import "@incus/Incus.pkl"
+
+name: String(!isEmpty)
+/// SSH config host alias; authentication and host keys use the operator's SSH config.
+ssh: String(!isEmpty)
+address: String(!isEmpty)
+sudo: Boolean = true
+bootstrap: Boolean = false
+preseed: Incus.InitPreseed = new {}
+config: Incus.ClusterMemberPut = new {}
+joinConfig: Listing<Incus.ClusterMemberConfigKey> = new {}

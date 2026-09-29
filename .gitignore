@@ -1,0 +1,11 @@
+/.pkl-cache/
+**/.pkl-cache/
+/.pkl-shell/
+**/.pkl-shell/
+/build/
+**/build/
+/.i2s/
+/dist/
+__pycache__/
+*.pyc
+*.key

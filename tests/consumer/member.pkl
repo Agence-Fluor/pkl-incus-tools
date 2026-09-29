@@ -1,0 +1,7 @@
+amends "@tools/lib/pkl/Member.pkl"
+
+name = "fixture"
+ssh = "localhost"
+address = "127.0.0.1:8443"
+sudo = false
+bootstrap = true

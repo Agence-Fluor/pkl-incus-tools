@@ -1,0 +1,5 @@
+open module incus.tools.Product
+
+import "Resource.pkl"
+
+resources: Listing<Resource.Resource> = new {}

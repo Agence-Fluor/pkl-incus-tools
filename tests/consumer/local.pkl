@@ -1,0 +1,6 @@
+amends "@tools/lib/pkl/Environment.pkl"
+
+remote = "local"
+project = "fixture-project"
+tenant = import("tenant.pkl")
+products { ["sample"] = import("product.pkl") }

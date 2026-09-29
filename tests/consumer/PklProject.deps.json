@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "resolvedDependencies": {
+    "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-shell/pkl-shell@0": {
+      "type": "remote",
+      "uri": "projectpackage://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-shell/pkl-shell@0.1.0",
+      "checksums": {
+        "sha256": "b538b1361270c0ec30b9a1b724463762ec81e3ce203bd3381ca9b3bea4637182"
+      }
+    },
+    "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus-tools/pkl-incus-tools@0": {
+      "type": "local",
+      "uri": "projectpackage://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus-tools/pkl-incus-tools@0.1.0",
+      "path": "../.."
+    },
+    "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus/incus-pkl@0": {
+      "type": "remote",
+      "uri": "projectpackage://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus/incus-pkl@0.1.0",
+      "checksums": {
+        "sha256": "3faa877295d7c1c9bec0324d8138883a0381e36ecab793220531d5d01258e7c8"
+      }
+    }
+  }
+}

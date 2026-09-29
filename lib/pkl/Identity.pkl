@@ -1,0 +1,5 @@
+open module incus.tools.Identity
+
+name: String(!isEmpty)
+/// Public PEM certificate; empty identities are never enrolled.
+certificate: String = ""

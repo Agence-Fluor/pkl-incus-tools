@@ -1,0 +1,18 @@
+open module incus.tools.Cluster
+
+import "@incus/Incus.pkl"
+
+import "Identity.pkl"
+import "Member.pkl"
+import "Resource.pkl"
+
+fixed kind: "cluster" = "cluster"
+name: String(!isEmpty)
+remote: String(!isEmpty)
+clustered: Boolean = true
+/// A fork must explicitly fill in and enable its infrastructure target.
+ready: Boolean = false
+members: Listing<Member> = new {}
+administrators: Listing<Identity> = new {}
+server: Incus.ServerPut = new {}
+resources: Listing<Resource.Resource> = new {}

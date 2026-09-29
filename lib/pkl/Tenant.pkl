@@ -1,0 +1,20 @@
+open module incus.tools.Tenant
+
+import "@incus/Incus.pkl"
+
+import "Identity.pkl"
+
+name: String(!isEmpty)
+administrators: Listing<Identity> = new {}
+/// Only the cluster administrator applies this policy.
+policy: Incus.ProjectOptions = new {
+  `features.images` = true
+  `features.profiles` = true
+  `features.networks` = true
+  `features.networks.zones` = true
+  `features.storage.volumes` = true
+  `features.storage.buckets` = true
+  restricted = true
+  `limits.containers` = 4
+  `limits.virtual-machines` = 4
+}
