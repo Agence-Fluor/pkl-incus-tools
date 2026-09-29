@@ -23,22 +23,27 @@ jobs:
       - uses: pkl-community/setup-pkl@v0
         with:
           pkl-version: 0.31.1
+      - name: Verify release tag
+        if: github.ref_type == 'tag'
+        env:
+          TAG: ${{ github.ref_name }}
+        run: sh scripts/release-tag.sh "$TAG"
       - uses: actions/checkout@v7
         with:
           repository: Agence-Fluor/pkl-nix-tools
-          ref: pkl-nix-tools@0.1.0
+          ref: 9b82ccdeef6611f0272dbe300c89e537d1ddc2f5
           path: .ci/pkl-nix-tools
       - run: echo "$GITHUB_WORKSPACE/.ci/pkl-nix-tools" >> "$GITHUB_PATH"
       - name: Check dependency locks
         run: |
-          ./flake.pkl develop --command sh -ec 'pkl project resolve; (cd tests/consumer && pkl project resolve); git diff --exit-code -- PklProject.deps.json tests/consumer/PklProject.deps.json'
+          pkl-nix-tools develop --command sh -ec 'pkl project resolve; (cd tests/consumer && pkl project resolve); git diff --exit-code -- PklProject.deps.json tests/consumer/PklProject.deps.json'
       - name: Test Pkl command and packaged consumer import
         run: >-
-          ./flake.pkl develop
+          pkl-nix-tools develop
           --command sh scripts/test-package.sh
       - name: Build release package
         run: >-
-          ./flake.pkl develop
+          pkl-nix-tools develop
           --command sh scripts/package-pkl.sh dist/package
       - uses: actions/upload-artifact@v7
         with:
@@ -58,12 +63,6 @@ jobs:
       - uses: pkl-community/setup-pkl@v0
         with:
           pkl-version: 0.31.1
-      - uses: actions/checkout@v7
-        with:
-          repository: Agence-Fluor/pkl-nix-tools
-          ref: pkl-nix-tools@0.1.0
-          path: .ci/pkl-nix-tools
-      - run: echo "$GITHUB_WORKSPACE/.ci/pkl-nix-tools" >> "$GITHUB_PATH"
       - uses: actions/download-artifact@v8
         with:
           name: pkl-incus-tools-package
@@ -72,8 +71,7 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          version=$(./flake.pkl develop --command pkl eval --no-project -x 'package.version' PklProject)
-          test "$TAG" = "pkl-incus-tools@$version"
+          sh scripts/release-tag.sh "$TAG"
       - name: Publish Pkl package assets
         env:
           GH_TOKEN: ${{ github.token }}

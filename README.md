@@ -6,8 +6,9 @@ Bibliothèque de description et de déploiement Incus **écrite en Pkl**. Les
 types Incus viennent du paquet publié `pkl-incus`. `pkl-shell` est le lecteur
 externe nécessaire à Pkl pour lancer le client Incus ; il n'y a pas de moteur
 Python ni de CLI de réconciliation distinct.
-Pour la toolchain du dépôt, `./flake.pkl develop` lit le schéma `pkl-nix`
-épinglé dans `flake.pkl` et utilise le wrapper `pkl-nix-tools` du `PATH`.
+Pour la toolchain du dépôt, `pkl-nix-tools develop` utilise le schéma `pkl-nix`
+verrouillé par `PklProject.deps.json`. Le shebang Pkl de `./flake.pkl` produit
+uniquement le rendu Nix.
 Cette passerelle suit le modèle des [lecteurs externes de
 Pkl](https://pkl-lang.org/main/current/pkl-cli/index.html#implementing-cli-tools) :
 une commande Pkl seule ne peut pas démarrer un programme système.
@@ -22,7 +23,7 @@ amends "pkl:Project"
 
 dependencies {
   ["tools"] {
-    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus-tools/pkl-incus-tools@0.1.0"
+    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus-tools/pkl-incus-tools@0.1.2"
   }
   ["shell"] {
     uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-shell/pkl-shell@0.1.0"
@@ -123,7 +124,7 @@ Incus](https://linuxcontainers.org/incus/docs/main/explanation/networks/).
 
 ```sh
 cd pkl-incus-tools
-nix --extra-experimental-features 'nix-command flakes' develop path:.
+pkl-nix-tools develop
 pkl project resolve
 cd tests/consumer && pkl project resolve && pkl run main.pkl --scope=full
 cd ../.. && tests/test-command.sh
@@ -149,12 +150,20 @@ consommateur isolé. Il publie les quatre fichiers du paquet Pkl lors d'un tag
 `pkl-incus-tools@<version>` correspondant à `package.version`.
 
 ```sh
-nix --extra-experimental-features 'nix-command flakes' develop path:. \
+pkl-nix-tools develop \
   --command sh scripts/test-package.sh
-nix --extra-experimental-features 'nix-command flakes' develop path:. \
+pkl-nix-tools develop \
   --command sh scripts/package-pkl.sh dist/package
 ```
 
 Les URL de publication pointent vers `Agence-Fluor/pkl-incus-tools`. Pour
 publier, pousser le code sur ce dépôt, puis créer le tag correspondant à la
-version du `PklProject`. Le workflow ne déploie rien sur un serveur Incus.
+version du `PklProject` :
+
+```sh
+tag=$(sh scripts/release-tag.sh)
+git tag "$tag"
+git push github "$tag"
+```
+
+Le workflow ne déploie rien sur un serveur Incus.

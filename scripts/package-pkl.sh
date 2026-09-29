@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-repo=$(CDPATH= cd "$(dirname "$0")/.." && pwd)
+repo=$(CDPATH='' cd "$(dirname "$0")/.." && pwd)
 cd "$repo"
 output_path=${1:-dist/package}
 stage=$(mktemp -d)

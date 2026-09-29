@@ -1,10 +1,7 @@
-#!/usr/bin/env -S pkl-nix-tools
-amends
-  "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-nix/pkl-nix@0.1.0::sha256:0bb439a7c49342a022b59203d60c011e41ba1bc01d982b6afa42fc453790d209#/Flake.pkl"
+#!/usr/bin/env -S pkl eval
+amends "@nix/Flake.pkl"
 
-import
-  "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-nix/pkl-nix@0.1.0::sha256:0bb439a7c49342a022b59203d60c011e41ba1bc01d982b6afa42fc453790d209#/Nix.pkl"
-  as Nix
+import "@nix/Nix.pkl" as Nix
 
 description = "Toolchain for the pkl-incus-tools package"
 
