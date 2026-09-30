@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pkl eval
+#!/usr/bin/env pkl-nix-tools
 amends "@nix/Flake.pkl"
 
 import "@nix/Nix.pkl" as Nix

@@ -6,9 +6,10 @@ Bibliothèque de description et de déploiement Incus **écrite en Pkl**. Les
 types Incus viennent du paquet publié `pkl-incus`. `pkl-shell` est le lecteur
 externe nécessaire à Pkl pour lancer le client Incus ; il n'y a pas de moteur
 Python ni de CLI de réconciliation distinct.
-Pour la toolchain du dépôt, `pkl-nix-tools develop` utilise le schéma `pkl-nix`
-verrouillé par `PklProject.deps.json`. Le shebang Pkl de `./flake.pkl` produit
-uniquement le rendu Nix.
+Pour la toolchain du dépôt, `./flake.pkl develop` utilise le schéma `pkl-nix`
+verrouillé par `PklProject.deps.json`. Le shebang lance
+[`pkl-nix-tools`](https://github.com/Agence-Fluor/pkl-nix-tools#installer-depuis-pkl),
+qui doit être installé dans `PATH`. `pkl eval flake.pkl` affiche le rendu Nix.
 Cette passerelle suit le modèle des [lecteurs externes de
 Pkl](https://pkl-lang.org/main/current/pkl-cli/index.html#implementing-cli-tools) :
 une commande Pkl seule ne peut pas démarrer un programme système.
@@ -124,7 +125,7 @@ Incus](https://linuxcontainers.org/incus/docs/main/explanation/networks/).
 
 ```sh
 cd pkl-incus-tools
-pkl-nix-tools develop
+./flake.pkl develop
 pkl project resolve
 cd tests/consumer && pkl project resolve && pkl run main.pkl --scope=full
 cd ../.. && tests/test-command.sh
@@ -150,9 +151,9 @@ consommateur isolé. Il publie les quatre fichiers du paquet Pkl lors d'un tag
 `pkl-incus-tools@<version>` correspondant à `package.version`.
 
 ```sh
-pkl-nix-tools develop \
+./flake.pkl develop \
   --command sh scripts/test-package.sh
-pkl-nix-tools develop \
+./flake.pkl develop \
   --command sh scripts/package-pkl.sh dist/package
 ```
 

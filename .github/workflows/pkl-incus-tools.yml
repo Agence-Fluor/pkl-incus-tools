@@ -31,19 +31,19 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: Agence-Fluor/pkl-nix-tools
-          ref: pkl-nix-tools@0.1.4
+          ref: pkl-nix-tools@0.1.5
           path: .ci/pkl-nix-tools
       - run: echo "$GITHUB_WORKSPACE/.ci/pkl-nix-tools" >> "$GITHUB_PATH"
       - name: Check dependency locks
         run: |
-          pkl-nix-tools develop --command sh -ec 'pkl project resolve; (cd tests/consumer && pkl project resolve); git diff --exit-code -- PklProject.deps.json tests/consumer/PklProject.deps.json'
+          ./flake.pkl develop --command sh -ec 'pkl project resolve; (cd tests/consumer && pkl project resolve); git diff --exit-code -- PklProject.deps.json tests/consumer/PklProject.deps.json'
       - name: Test Pkl command and packaged consumer import
         run: >-
-          pkl-nix-tools develop
+          ./flake.pkl develop
           --command sh scripts/test-package.sh
       - name: Build release package
         run: >-
-          pkl-nix-tools develop
+          ./flake.pkl develop
           --command sh scripts/package-pkl.sh dist/package
       - uses: actions/upload-artifact@v7
         with:
