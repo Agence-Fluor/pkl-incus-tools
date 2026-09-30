@@ -10,9 +10,9 @@
     },
     "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-nix-tools/pkl-nix-tools@0": {
       "type": "remote",
-      "uri": "projectpackage://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-nix-tools/pkl-nix-tools@0.1.6",
+      "uri": "projectpackage://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-nix-tools/pkl-nix-tools@0.2.0",
       "checksums": {
-        "sha256": "8d6e7182e4027dadf463c9ef2992f3a58a5c197b760b910106798c21195a9782"
+        "sha256": "2f2bbd4bae4d26ca7706f05eaf7f64d6013d264b694a5633bbff8622acf428c8"
       }
     },
     "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-nix/pkl-nix@0": {
