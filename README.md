@@ -3,21 +3,16 @@
 [![CI](https://github.com/Agence-Fluor/pkl-incus-tools/actions/workflows/pkl-incus-tools.yml/badge.svg)](https://github.com/Agence-Fluor/pkl-incus-tools/actions/workflows/pkl-incus-tools.yml)
 
 Bibliothèque de description et de déploiement Incus **écrite en Pkl**. Les
-types Incus viennent du paquet publié `pkl-incus`. `pkl-shell` est le lecteur
+types Incus viennent du paquet publié `incus-pkl`. `pkl-shell` est le lecteur
 externe nécessaire à Pkl pour lancer le client Incus ; il n'y a pas de moteur
 Python ni de CLI de réconciliation distinct.
-Pour la toolchain du dépôt, `./flake.pkl develop` utilise le schéma `pkl-nix`
-verrouillé par `PklProject.deps.json`. Le shebang lance
-[`pkl-nix-tools`](https://github.com/Agence-Fluor/pkl-nix-tools#démarrer),
-chargé depuis la dépendance `nixTools` du projet, sans installation globale. `pkl eval flake.pkl` affiche le rendu Nix.
-Cette passerelle suit le modèle des [lecteurs externes de
+`pkl-shell` utilise le mécanisme des [lecteurs externes de
 Pkl](https://pkl-lang.org/main/current/pkl-cli/index.html#implementing-cli-tools) :
 une commande Pkl seule ne peut pas démarrer un programme système.
 
 ## Dépendances d'un dépôt consommateur
 
-Après la première publication de ce paquet, déclarer les dépendances dans
-`PklProject` :
+Déclarez les paquets publiés dans `PklProject` :
 
 ```pkl
 amends "pkl:Project"
@@ -45,10 +40,11 @@ evaluatorSettings {
 }
 ```
 
-`pkl project resolve` verrouille les versions. Ajouter `.pkl-cache/` et
+`pkl project resolve` verrouille les versions dans `PklProject.deps.json`, à
+commiter et à régénérer après modification des dépendances. Ajouter `.pkl-cache/` et
 `.pkl-shell/` au `.gitignore`. Le lecteur est extrait depuis le paquet
-`pkl-shell` au premier `--execute`. Pour travailler sur la bibliothèque avant
-sa publication, `tests/consumer/PklProject` importe le projet local.
+`pkl-shell` au premier `--execute`. Pour travailler sur la bibliothèque
+locale, `tests/consumer/PklProject` importe le projet du dépôt.
 
 ## Organisation
 
@@ -65,6 +61,7 @@ configuration, tandis que `pkl run main.pkl` affiche le plan. La modification
 du serveur demande explicitement `--execute`.
 
 ```pkl
+#!/usr/bin/env -S pkl run
 // main.pkl, dans un dépôt qui dépend de cette bibliothèque.
 extends "@tools/lib/pkl/Command.pkl"
 
@@ -93,6 +90,8 @@ pkl run main.pkl --action=destroy --execute
 pkl run main.pkl --action=destroy --scope=project --execute
 ```
 
+Après `chmod +x main.pkl`, `./main.pkl` accepte les mêmes arguments.
+
 `--scope=resources` est la valeur par défaut. `full` traite le projet puis
 les ressources, en ordre inverse à la destruction. Les ressources d'un produit
 doivent être rangées dans l'ordre de leurs dépendances (`dependsOn`). Une
@@ -103,7 +102,7 @@ jamais modifiée. Les collisions de noms sont refusées.
 
 Le moteur sait créer, mettre à jour et supprimer des **projets, réseaux OVN,
 profils, instances et volumes custom** sur un remote Incus existant. Il
-construit les corps JSON à partir des types `pkl-incus`, ajoute le marqueur
+construit les corps JSON à partir des types `incus-pkl`, ajoute le marqueur
 `user.i2s.owner`, interroge Incus et refuse de prendre possession d'un objet
 existant sans ce marqueur. Une seconde application met à jour les objets
 gérés au lieu de les recréer. La destruction ne cible que les objets marqués
@@ -123,17 +122,24 @@ Incus](https://linuxcontainers.org/incus/docs/main/explanation/networks/).
 
 ## Développement local
 
+Prérequis : Bash 4+, Pkl 0.31.1+ et Nix avec Flakes sur Linux. Le shebang de
+`flake.pkl` charge [`pkl-nix-tools`](https://github.com/Agence-Fluor/pkl-nix-tools#démarrer)
+depuis la dépendance `nixTools` verrouillée par le projet. Pkl démarre à chaque
+appel ; le rendu Nix reste en cache dans `.pkl-nix-tools/`.
+`pkl eval flake.pkl` affiche seulement le rendu Nix. Aucun lanceur global
+ni script Bash supplémentaire n'est nécessaire dans le projet consommateur.
+
 ```sh
 cd pkl-incus-tools
-./flake.pkl develop
 pkl project resolve
+./flake.pkl develop
 cd tests/consumer && pkl project resolve && pkl run main.pkl --scope=full
 cd ../.. && tests/test-command.sh
 ```
 
 Le flake fournit Pkl, le client Incus et `unzip` pour les tests du paquet.
 Le dépôt consommateur doit aussi disposer de `sh` pour démarrer le lecteur
-`pkl-shell`. La bibliothèque épingle `pkl-incus` et `pkl-shell` dans son
+`pkl-shell`. La bibliothèque épingle `incus-pkl` et `pkl-shell` dans son
 `PklProject.deps.json` ; elle ne dépend pas des dépôts voisins.
 
 Le test simulé vérifie plan, création, réapplication, destruction et refus
