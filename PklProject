@@ -11,13 +11,13 @@ package {
 
 dependencies {
   ["nix"] {
-    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-nix/pkl-nix@0.1.0"
+    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-nix/pkl-nix@0.1.1"
   }
   ["incus"] {
-    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus/incus-pkl@0.1.0"
+    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus/incus-pkl@0.1.1"
   }
   ["shell"] {
-    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-shell/pkl-shell@0.1.0"
+    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-shell/pkl-shell@0.1.1"
   }
 }
 

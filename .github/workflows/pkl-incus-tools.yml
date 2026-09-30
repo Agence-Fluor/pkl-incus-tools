@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: Agence-Fluor/pkl-nix-tools
-          ref: 9b82ccdeef6611f0272dbe300c89e537d1ddc2f5
+          ref: pkl-nix-tools@0.1.2
           path: .ci/pkl-nix-tools
       - run: echo "$GITHUB_WORKSPACE/.ci/pkl-nix-tools" >> "$GITHUB_PATH"
       - name: Check dependency locks

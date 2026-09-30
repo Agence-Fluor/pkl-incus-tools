@@ -26,7 +26,7 @@ dependencies {
     uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus-tools/pkl-incus-tools@0.1.2"
   }
   ["shell"] {
-    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-shell/pkl-shell@0.1.0"
+    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-shell/pkl-shell@0.1.1"
   }
 }
 
@@ -37,7 +37,7 @@ evaluatorSettings {
       executable = "sh"
       arguments {
         "-ec"
-        "r=.pkl-shell/0.1.0/reader; if [ ! -x \"$r\" ]; then pkl run @shell/install.pkl >/dev/null; chmod +x \"$r\"; fi; exec \"$r\""
+        "r=.pkl-shell/0.1.1/reader; if [ ! -x \"$r\" ]; then pkl run @shell/install.pkl >/dev/null; chmod +x \"$r\"; fi; exec \"$r\""
       }
     }
   }
