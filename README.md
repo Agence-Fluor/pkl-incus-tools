@@ -23,7 +23,7 @@ amends "pkl:Project"
 
 dependencies {
   ["tools"] {
-    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus-tools/pkl-incus-tools@0.1.2"
+    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-incus-tools/pkl-incus-tools@0.1.3"
   }
   ["shell"] {
     uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-shell/pkl-shell@0.1.1"

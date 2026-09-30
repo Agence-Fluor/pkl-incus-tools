@@ -14,19 +14,12 @@ local systems = List("x86_64-linux", "aarch64-linux")
 devShells {
   for (system in systems) {
     [system] {
-      ["default"] = new Nix.Raw {
-        code =
-          """
-          let
-            pkgs = inputs.nixpkgs.legacyPackages.\(system);
-          in
-          pkgs.mkShell {
-            packages = [ pkgs.pkl pkgs.incus.client pkgs.unzip ];
-            shellHook = ''
-              export PKL="${pkgs.pkl}/bin/pkl"
-            '';
-          }
-          """
+      ["default"] = new Nix.MkShell {
+        pkgs = new Nix.Ref { path = "inputs.nixpkgs.legacyPackages.\(system)" }
+        packages { "pkl"; "incus.client"; "unzip" }
+        shellHook = new Nix.InterpolatedString {
+          parts { "export PKL=\""; new Nix.Ref { path = "pkgs.pkl" }; "/bin/pkl\"\n" }
+        }
       }
     }
   }
