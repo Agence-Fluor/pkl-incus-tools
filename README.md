@@ -8,8 +8,8 @@ externe nécessaire à Pkl pour lancer le client Incus ; il n'y a pas de moteur
 Python ni de CLI de réconciliation distinct.
 Pour la toolchain du dépôt, `./flake.pkl develop` utilise le schéma `pkl-nix`
 verrouillé par `PklProject.deps.json`. Le shebang lance
-[`pkl-nix-tools`](https://github.com/Agence-Fluor/pkl-nix-tools#installer-depuis-pkl),
-qui doit être installé dans `PATH`. `pkl eval flake.pkl` affiche le rendu Nix.
+[`pkl-nix-tools`](https://github.com/Agence-Fluor/pkl-nix-tools#démarrer),
+chargé depuis la dépendance `nixTools` du projet, sans installation globale. `pkl eval flake.pkl` affiche le rendu Nix.
 Cette passerelle suit le modèle des [lecteurs externes de
 Pkl](https://pkl-lang.org/main/current/pkl-cli/index.html#implementing-cli-tools) :
 une commande Pkl seule ne peut pas démarrer un programme système.

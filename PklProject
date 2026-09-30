@@ -10,6 +10,9 @@ package {
 }
 
 dependencies {
+  ["nixTools"] {
+    uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-nix-tools/pkl-nix-tools@0.1.6"
+  }
   ["nix"] {
     uri = "package://pkg.pkl-lang.org/github.com/Agence-Fluor/pkl-nix/pkl-nix@0.1.2"
   }
